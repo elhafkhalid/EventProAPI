@@ -20,9 +20,8 @@ public class Promotion {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // RELATION CORRIGÉE : Lié à l'Événement, pas à l'Organisateur
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "event_id", nullable = false)
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "event_id", nullable = false, unique = true) // unique=true garantit le 1-to-1
     private Event event;
 
     @Column(nullable = false, unique = true)

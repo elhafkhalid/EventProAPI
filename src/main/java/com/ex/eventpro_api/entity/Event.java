@@ -20,13 +20,8 @@ public class Event {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "organizer_id", nullable = false)
-    private Organizer organizer;
-
     @Column(nullable = false)
     private String title;
-
     private String description;
     private String location;
 
@@ -35,7 +30,6 @@ public class Event {
 
     @Column(nullable = false)
     private LocalDateTime endDate;
-
     private LocalDateTime salesOpeningDate;
     private LocalDateTime salesClosingDate;
 
@@ -46,7 +40,16 @@ public class Event {
     @Column(nullable = false)
     private Integer capacity;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "organizer_id", nullable = false)
+    private Organizer organizer;
+
     // Un événement a plusieurs configurations de catégories
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TicketCategoriesPerEvent> categories;
+
+    @OneToOne(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Promotion promotion;
+
+
 }
