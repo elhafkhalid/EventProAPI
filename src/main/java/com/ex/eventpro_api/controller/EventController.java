@@ -20,4 +20,5 @@ public class EventController {
     public EventResponse createEvent(@RequestBody EventCreateRequest request) {
         return eventService.createEvent(request);
     }
+
 }

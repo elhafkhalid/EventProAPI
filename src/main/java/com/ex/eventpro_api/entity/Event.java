@@ -50,6 +50,4 @@ public class Event {
 
     @OneToOne(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
     private Promotion promotion;
-
-
 }
