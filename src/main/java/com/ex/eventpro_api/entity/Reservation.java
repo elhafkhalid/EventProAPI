@@ -51,3 +51,9 @@ public class Reservation {
     @OneToMany(mappedBy = "reservation", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ReservationLine> lines;
 }
+
+
+// Dans Reservation (Le parent)
+//@OneToMany(cascade = CascadeType.ALL)
+//@JoinColumn(name = "reservation_id")
+//private List<ReservationLine> lines;

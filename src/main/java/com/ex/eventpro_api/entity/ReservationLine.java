@@ -5,6 +5,7 @@ import lombok.*;
 
 import java.math.BigDecimal;
 
+
 @Entity
 @Table(name = "reservation_lines")
 @Getter
