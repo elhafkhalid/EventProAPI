@@ -15,11 +15,10 @@ public class TicketInventoryServiceImp implements TicketInventoryService {
 
     private final TicketCategoriesPerEventRepository ticketCategoryRepository;
     @Override
-    public TicketCategoriesPerEvent lockAndDecrementStock(Long TicketCategoriesPerEventId , Integer quantity){
+    public TicketCategoriesPerEvent lockAndDecrementStock(Long ticketCategoriesPerEventId , Integer quantity){
 
-        TicketCategoriesPerEvent stock = ticketCategoryRepository.findByIdWithLock(TicketCategoriesPerEventId)
-                .orElseThrow(() -> new ResourceNotFoundException("Catégorie de billet introuvable avec l'ID : \" + ticketCategoriesPerEventId"));
-
+        TicketCategoriesPerEvent stock = ticketCategoryRepository.findByIdWithLock(ticketCategoriesPerEventId)
+                .orElseThrow(() -> new ResourceNotFoundException("Catégorie de billet introuvable avec l'ID : " + ticketCategoriesPerEventId));
 
         if(quantity > stock.getTotalQuantity())
             throw new InsufficientStockException("Stock insuffisant pour la catégorie '\" + stock.getCategory().getName() + \"'. Places restantes : \" + stock.getTotalQuantity()");
