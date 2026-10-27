@@ -1,5 +1,6 @@
 package com.ex.eventpro_api.entity;
 
+import com.ex.eventpro_api.enums.EventStatus;
 import com.ex.eventpro_api.enums.ReservationStatus;
 import jakarta.persistence.*;
 import lombok.*;
@@ -50,10 +51,7 @@ public class Reservation {
     // Une réservation a plusieurs lignes
     @OneToMany(mappedBy = "reservation", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ReservationLine> lines;
+
+
 }
 
-
-// Dans Reservation (Le parent)
-//@OneToMany(cascade = CascadeType.ALL)
-//@JoinColumn(name = "reservation_id")
-//private List<ReservationLine> lines;

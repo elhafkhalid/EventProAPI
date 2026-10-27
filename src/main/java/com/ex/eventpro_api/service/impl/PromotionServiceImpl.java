@@ -37,6 +37,7 @@ public class PromotionServiceImpl implements PromotionService {
         }
 
         Promotion promotion = promotionMapper.toEntity(request);
+
         promotion.setEvent(event);
         promotion.setUsageCount(0);
 

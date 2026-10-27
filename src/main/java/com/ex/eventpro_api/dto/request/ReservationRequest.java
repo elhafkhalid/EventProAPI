@@ -4,7 +4,7 @@ import lombok.Builder;
 
 import java.util.List;
 
-@Builder
+
 public record ReservationRequest(
         Long clientId,
         String promotionCode,

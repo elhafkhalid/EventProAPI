@@ -19,7 +19,6 @@ public class PromotionController {
     @ResponseStatus(HttpStatus.CREATED)
     public PromotionResponse createPromotion(@RequestBody PromotionCreateRequest request) {
         return promotionService.createPromotion(request);
-
     }
 
 }

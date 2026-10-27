@@ -12,7 +12,8 @@ public interface PromotionMapper {
     // 1. DTO -> Entité
     @Mapping(target = "id", ignore = true)          // Géré par la BDD
     @Mapping(target = "event", ignore = true)       // Sera cherché par le Service via eventId
-    @Mapping(target = "usageCount", ignore = true)  // Sera initialisé à 0 par le Service
+    @Mapping(target = "usageCount", ignore = true)
+    // Sera initialisé à 0 par le Service
     Promotion toEntity(PromotionCreateRequest request);
 
     // 2. Entité -> DTO

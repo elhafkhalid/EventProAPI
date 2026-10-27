@@ -50,4 +50,12 @@ public class Event {
 
     @OneToOne(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
     private Promotion promotion;
+
+    public boolean isOpenForSales() {
+        LocalDateTime now = LocalDateTime.now();
+
+        return this.status == EventStatus.PUBLISHED &&
+                now.isAfter(this.salesOpeningDate) &&
+                now.isBefore(this.salesClosingDate);
+    }
 }

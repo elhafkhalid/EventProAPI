@@ -9,7 +9,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
-public interface ticketCategoriesPerEventRepository extends JpaRepository<TicketCategoriesPerEvent, Long> {
+public interface TicketCategoriesPerEventRepository extends JpaRepository<TicketCategoriesPerEvent, Long> {
 
     // LA MÉTHODE MAGIQUE POUR ÉVITER LA SURVENTE
     @Lock(LockModeType.PESSIMISTIC_WRITE)
