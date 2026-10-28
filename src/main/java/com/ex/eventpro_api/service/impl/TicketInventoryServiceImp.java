@@ -21,10 +21,20 @@ public class TicketInventoryServiceImp implements TicketInventoryService {
                 .orElseThrow(() -> new ResourceNotFoundException("Catégorie de billet introuvable avec l'ID : " + ticketCategoriesPerEventId));
 
         if(quantity > stock.getTotalQuantity())
-            throw new InsufficientStockException("Stock insuffisant pour la catégorie '\" + stock.getCategory().getName() + \"'. Places restantes : \" + stock.getTotalQuantity()");
+            throw new InsufficientStockException("Stock insuffisant pour la catégorie " + stock.getCategory().getName() + " Places restantes : " + stock.getTotalQuantity());
 
         stock.setTotalQuantity(stock.getTotalQuantity() - quantity);
 
         return ticketCategoryRepository.save(stock);
+    }
+
+    @Override
+    public void releaseStock(Long ticketCategoriesPerEventId,Integer quantity){
+        TicketCategoriesPerEvent stock = ticketCategoryRepository.findById(ticketCategoriesPerEventId)
+                .orElseThrow(() -> new ResourceNotFoundException("Catégorie de billet introuvable avec l'ID : " + ticketCategoriesPerEventId));
+
+        stock.setTotalQuantity(stock.getTotalQuantity() + quantity);
+
+        ticketCategoryRepository.save(stock);
     }
 }
