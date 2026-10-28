@@ -16,5 +16,4 @@ public interface ReservationMapper {
     // 2. Méthode pour traduire une seule ligne (OBLIGATOIRE pour le categoryName)
     @Mapping(target = "categoryName", source = "category.category.name")
     ReservationLineResponse toLineResponse(ReservationLine line);
-
 }

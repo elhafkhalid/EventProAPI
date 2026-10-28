@@ -13,6 +13,7 @@ public interface ReservationLineRepository extends JpaRepository<ReservationLine
             "WHERE rl.reservation.client.id = :clientId " +
             "AND rl.category.id = :categoryId " +
             "AND rl.reservation.status IN ('PENDING_PAYMENT', 'CONFIRMED')")
+
     Integer countTotalQuantityBoughtByClientForCategory(
             @Param("clientId") Long clientId,
             @Param("categoryId") Long categoryId

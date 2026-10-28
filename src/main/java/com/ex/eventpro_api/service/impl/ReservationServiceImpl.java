@@ -7,10 +7,7 @@ import com.ex.eventpro_api.entity.*;
 import com.ex.eventpro_api.enums.ReservationStatus;
 import com.ex.eventpro_api.exception.ResourceNotFoundException;
 import com.ex.eventpro_api.mapper.ReservationMapper;
-import com.ex.eventpro_api.repository.PromotionRepository;
-import com.ex.eventpro_api.repository.ReservationLineRepository;
-import com.ex.eventpro_api.repository.ReservationRepository;
-import com.ex.eventpro_api.repository.UserRepository;
+import com.ex.eventpro_api.repository.*;
 import com.ex.eventpro_api.service.PricingService;
 import com.ex.eventpro_api.service.ReservationService;
 import com.ex.eventpro_api.service.TicketInventoryService;
@@ -32,6 +29,7 @@ public class ReservationServiceImpl implements ReservationService {
     private final ReservationRepository reservationRepository;
     private final PromotionRepository promotionRepository;
     private final ReservationLineRepository reservationLineRepository;
+    private final EventRepository eventRepository;
 
     private final TicketInventoryService inventoryService;
     private final PricingService pricingService;
@@ -45,6 +43,9 @@ public class ReservationServiceImpl implements ReservationService {
         // 1. Récupérer le client
         Client client = getClient(request.clientId());
 
+        Event event = eventRepository.findById(request.eventId())
+                .orElseThrow(() -> new ResourceNotFoundException("Événement introuvable avec l'ID : " + request.eventId()));
+
         // 2. Créer le panier de base
         Reservation reservation = buildReservation(client);
 
@@ -52,7 +53,7 @@ public class ReservationServiceImpl implements ReservationService {
         Promotion promo = getPromotion(request.promotionCode());
 
         // 4. Traiter les lignes
-        List<ReservationLine> lines = processLines(request, reservation, promo);
+        List<ReservationLine> lines = processLines(request, reservation, promo, request.eventId());
         reservation.setLines(lines);
 
         // 5. Assigner la promo au panier maintenant qu'on sait qu'elle est valide
@@ -95,23 +96,27 @@ public class ReservationServiceImpl implements ReservationService {
         return null;
     }
 
-    private List<ReservationLine> processLines(ReservationRequest request, Reservation reservation, Promotion promo) {
+    private List<ReservationLine> processLines(ReservationRequest request, Reservation reservation, Promotion promo, Long eventId) {
         List<ReservationLine> lines = new ArrayList<>();
 
         for (ReservationLineRequest lineReq : request.lines()) {
-            ReservationLine line = createReservationLine(reservation, lineReq, request.clientId(), promo);
+            ReservationLine line = createReservationLine(reservation, lineReq, request.clientId(), promo, eventId);
             lines.add(line);
         }
 
         return lines;
     }
 
-    private ReservationLine createReservationLine(Reservation reservation, ReservationLineRequest lineReq, Long clientId, Promotion promo) {
+    private ReservationLine createReservationLine(Reservation reservation, ReservationLineRequest lineReq, Long clientId, Promotion promo, Long eventId) {
         // 1. Verrouiller le stock
         TicketCategoriesPerEvent stock = inventoryService.lockAndDecrementStock(
                 lineReq.ticketCategoriesPerEventId(),
                 lineReq.quantity()
         );
+
+        if (!stock.getEvent().getId().equals(eventId)) {
+            throw new IllegalArgumentException("La catégorie ID " + lineReq.ticketCategoriesPerEventId() + " n'appartient pas à l'événement spécifié.");
+        }
 
         // 2. VÉRIFICATION : La promotion appartient-elle à cet événement ?
         if (promo != null && !promo.getEvent().getId().equals(stock.getEvent().getId())) {
