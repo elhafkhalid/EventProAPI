@@ -46,4 +46,19 @@ public class Promotion {
     @Column(nullable = false)
     @Builder.Default
     private Integer usageCount = 0;
+
+
+    public boolean isValid() {
+        LocalDateTime now = LocalDateTime.now();
+        return now.isAfter(startDate) &&
+                now.isBefore(endDate) &&
+                usageCount < usageLimit;
+    }
+
+    public BigDecimal calculateDiscount(BigDecimal amount) {
+        if (discountType == DiscountType.PERCENTAGE)
+            return amount.multiply(discountValue).divide(BigDecimal.valueOf(100));
+        else
+            return discountValue.min(amount);
+    }
 }

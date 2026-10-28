@@ -26,10 +26,10 @@ public class PromotionServiceImpl implements PromotionService {
     public PromotionResponse createPromotion(PromotionCreateRequest request) {
 
         Event event = eventRepository.findById(request.eventId())
-                .orElseThrow(() -> new ResourceNotFoundException("even intr avec id : " + request.eventId()));
+                .orElseThrow(() -> new ResourceNotFoundException("event intr avec id : " + request.eventId()));
 
         if (promotionRepository.findByEventId(request.eventId()).isPresent()) {
-            throw new IllegalArgumentException(" cet even possede deja une promotion active ");
+            throw new IllegalArgumentException(" cet event possede deja une promotion active ");
         }
 
         if(promotionRepository.findByCode(request.code()).isPresent()){
@@ -37,6 +37,7 @@ public class PromotionServiceImpl implements PromotionService {
         }
 
         Promotion promotion = promotionMapper.toEntity(request);
+
         promotion.setEvent(event);
         promotion.setUsageCount(0);
 

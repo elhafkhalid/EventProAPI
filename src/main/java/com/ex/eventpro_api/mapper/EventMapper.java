@@ -14,7 +14,7 @@ public interface EventMapper {
     @Mapping(target = "id", ignore = true)          // L'ID est géré par la BDD
     @Mapping(target = "organizer", ignore = true)   // Sera défini dans le Service
     @Mapping(target = "categories", ignore = true)  // Sera défini dans le Service (car il faut chercher les TicketCategory en BDD)
-    @Mapping(target = "status", constant = "DRAFT") // Un nouvel événement commence toujours en DRAFT
+    @Mapping(target = "status", constant = "PUBLISHED") // Un nouvel événement commence toujours en DRAFT
 
     Event toEntity(EventCreateRequest request);
 

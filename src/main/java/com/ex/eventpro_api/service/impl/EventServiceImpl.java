@@ -29,7 +29,6 @@ public class EventServiceImpl implements EventService {
     private final TicketCategoryRepository ticketCategoryRepository;
     private final EventMapper eventMapper; // On injecte ton Mapper
 
-
     @Override
     @Transactional // Tout réussit ou tout est annulé
     public EventResponse createEvent(EventCreateRequest request) {
