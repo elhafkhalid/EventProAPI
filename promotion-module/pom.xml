@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.ex</groupId>
+        <artifactId>EventPro_API</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>promotion-module</artifactId>
+    <name>promotion-module</name>
+    <description>Promotion module</description>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.ex</groupId>
+            <artifactId>core-module</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+
+        <!-- Promotion dépend de Event (pour vérifier l'eventId) -->
+        <dependency>
+            <groupId>com.ex</groupId>
+            <artifactId>event-module</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
+</project>
