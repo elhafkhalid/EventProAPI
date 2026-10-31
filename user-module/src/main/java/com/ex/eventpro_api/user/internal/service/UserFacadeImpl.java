@@ -28,7 +28,7 @@ public class UserFacadeImpl implements UserFacade {
     }
 
     @Override
-    public void valOrganizerById(Long id) {
+    public void getOrganizerById(Long id) {
         userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Organisateur introuvable avec l'ID : " + id));
     }

@@ -1,4 +1,4 @@
-package com.ex.eventpro_api.event.internal.service.Impl;
+package com.ex.eventpro_api.event.internal.facadesImpl;
 
 import com.ex.eventpro_api.core.exception.ResourceNotFoundException;
 import com.ex.eventpro_api.event.api.EventFacade;

@@ -74,5 +74,6 @@ public class ReservationServiceImpl implements ReservationService {
         // 6. Sauvegarder
         Reservation savedReservation = reservationRepository.save(reservation);
         return reservationMapper.toResponse(savedReservation);
+
     }
 }
