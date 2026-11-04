@@ -3,6 +3,7 @@ package com.ex.eventpro_api.payment.internal.controller;
 import com.ex.eventpro_api.payment.internal.dto.request.PaymentRequest;
 import com.ex.eventpro_api.payment.internal.dto.response.PaymentResponse;
 import com.ex.eventpro_api.payment.internal.service.PaymentService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -16,7 +17,7 @@ public class PaymentController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public PaymentResponse processPayment(@RequestBody PaymentRequest request) {
+    public PaymentResponse processPayment(@Valid @RequestBody PaymentRequest request) {
         return paymentService.processPayment(request);
     }
 }

@@ -47,25 +47,25 @@ public class PaymentValidationServiceImpl implements PaymentValidationService {
     @Override
     public ReservationDto getAndValidateReservation(PaymentRequest request) {
         // 1. On récupère le DTO via la Façade (qui gère le 404 si introuvable)
-        ReservationDto reservation = reservationFacade.getReservationById(request.reservationId());
+        ReservationDto reservationDto = reservationFacade.getReservationById(request.reservationId());
 
         // --- AJOUTE LA VÉRIFICATION DE SÉCURITÉ ICI ---
 
-        if (!reservation.clientId().equals(request.clientId())) {
+        if (!reservationDto.clientId().equals(request.clientId())) {
             throw new IllegalArgumentException("Vous n'êtes pas autorisé à payer cette réservation. Elle appartient à un autre client.");
         }
 
         // 2. Valider le montant
-        if (reservation.totalAmount().compareTo(request.amount()) != 0) {
-            throw new IllegalArgumentException("Le montant envoyé (" + request.amount() + ") ne correspond pas au total de la réservation (" + reservation.totalAmount() + ").");
+        if (reservationDto.totalAmount().compareTo(request.amount()) != 0) {
+            throw new IllegalArgumentException("Le montant envoyé (" + request.amount() + ") ne correspond pas au total de la réservation (" + reservationDto.totalAmount() + ").");
         }
 
         // 3. Valider le statut et l'expiration (le statut est un String dans le DTO)
-        if (!reservation.status().equals("PENDING_PAYMENT")
-                || reservation.expirationDate().isBefore(LocalDateTime.now())) {
+        if (!reservationDto.status().equals("PENDING_PAYMENT")
+                || reservationDto.expirationDate().isBefore(LocalDateTime.now())) {
             throw new IllegalArgumentException("Cette réservation est expirée ou n'est plus en attente de paiement.");
         }
 
-        return reservation;
+        return reservationDto;
     }
 }

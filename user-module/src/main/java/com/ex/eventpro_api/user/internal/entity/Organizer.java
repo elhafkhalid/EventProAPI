@@ -10,9 +10,7 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
+//@AllArgsConstructor
 @SuperBuilder
 public class Organizer extends User {
-
-    private String organisationName;
 }

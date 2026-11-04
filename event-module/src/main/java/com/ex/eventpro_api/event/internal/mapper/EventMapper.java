@@ -16,7 +16,7 @@ public interface EventMapper {
     @Mapping(target = "categories", ignore = true)
     @Mapping(target = "createdAt", ignore = true) // Géré par Hibernate
     @Mapping(target = "updatedAt", ignore = true) // Géré par Hibernate
-    @Mapping(target = "status", constant = "DRAFT") // CORRECTION : On crée toujours en DRAFT !
+    @Mapping(target = "status", constant = "DRAFT") // On crée toujours en DRAFT !
     Event toEntity(EventCreateRequest request);
 
     // 2. Entité -> DTO Response

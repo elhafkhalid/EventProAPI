@@ -1,4 +1,4 @@
-package com.ex.eventpro_api.reservation.internal.service.Impl;
+package com.ex.eventpro_api.reservation.internal.facade;
 
 import com.ex.eventpro_api.core.exception.ResourceNotFoundException;
 import com.ex.eventpro_api.reservation.api.ReservationFacade;
@@ -6,6 +6,7 @@ import com.ex.eventpro_api.reservation.api.dto.ReservationDto;
 import com.ex.eventpro_api.reservation.internal.entity.Reservation;
 import com.ex.eventpro_api.reservation.internal.enums.ReservationStatus;
 import com.ex.eventpro_api.reservation.internal.repository.ReservationRepository;
+import com.ex.eventpro_api.reservation.internal.service.TicketService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class ReservationFacadeImpl implements ReservationFacade {
 
     private final ReservationRepository reservationRepository;
+    private final TicketService ticketService;
 
     @Override
     public ReservationDto getReservationById(Long reservationId) {
@@ -36,7 +38,8 @@ public class ReservationFacadeImpl implements ReservationFacade {
         Reservation reservation = reservationRepository.findById(reservationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Réservation introuvable avec l'ID : " + reservationId));
 
-        reservation.setStatus(ReservationStatus.CONFIRMED);
+        reservation.confirm();
         reservationRepository.save(reservation);
+        ticketService.generateTickets(reservation);
     }
 }

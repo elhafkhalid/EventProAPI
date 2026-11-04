@@ -8,5 +8,5 @@ public interface ReservationFacade {
     ReservationDto getReservationById(Long reservationId);
 
     // Pour que le module Payment puisse confirmer la réservation après paiement
-    void confirmReservation(Long reservationId);
+     void confirmReservation(Long reservationId);
 }

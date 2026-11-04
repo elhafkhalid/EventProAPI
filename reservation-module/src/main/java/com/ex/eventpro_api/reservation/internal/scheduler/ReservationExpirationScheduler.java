@@ -46,7 +46,7 @@ public class ReservationExpirationScheduler {
                 );
             }
 
-            reservation.setStatus(ReservationStatus.EXPIRED);
+            reservation.expire();
         }
 
         reservationRepository.saveAll(expiredReservations);

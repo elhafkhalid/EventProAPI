@@ -13,7 +13,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -24,35 +23,50 @@ public class ReservationLineServiceImpl implements ReservationLineService {
     private final ReservationLineRepository reservationLineRepository;
 
     @Override
-    public List<ReservationLine> processLines(ReservationRequest request, Reservation reservation, PromotionDto promo) {
-        List<ReservationLine> lines = new ArrayList<>();
-
-        for (ReservationLineRequest lineReq : request.lines()) {
-            // 1. On réserve le stock (Verrou) et on récupère le prix + maxQuota
-            TicketStockDto stockInfo = eventFacade.reserveStock(lineReq.ticketCategoriesPerEventId(), lineReq.quantity());
-
-            // 2. Vérification du quota
-            checkClientQuota(request.clientId(), lineReq.ticketCategoriesPerEventId(), lineReq.quantity(), stockInfo.maxQuotaPerClient());
-
-            // 3. Création de la ligne
-            ReservationLine line = ReservationLine.builder()
-                    .reservation(reservation)
-                    .ticketCategoriesPerEventId(lineReq.ticketCategoriesPerEventId())
-                    .quantity(lineReq.quantity())
-                    .fixedUnitPrice(stockInfo.unitPrice()) // On utilise le prix du DTO
-                    .subTotal(stockInfo.unitPrice().multiply(BigDecimal.valueOf(lineReq.quantity())))
-                    .build();
-
-            lines.add(line);
-        }
-        return lines;
+    public List<ReservationLine> processLines(ReservationRequest request, Reservation reservation, PromotionDto promo){
+        // La magie du Stream : on transforme chaque Request en ReservationLine
+        return request.lines().stream()
+                .map(lineReq -> buildReservationLine(request, reservation, lineReq))
+                .toList(); // .toList() renvoie une liste immuable (Java 16+)
     }
 
-    private void checkClientQuota(Long clientId, Long ticketId, Integer requestedQuantity, Integer maxQuota) {
-        // 1. On demande au repository combien le client en a déjà acheté
-        Integer alreadyBought = reservationLineRepository.countTotalQuantityBoughtByClientForCategory(clientId, ticketId);
+    // ==========================================
+    // MÉTHODES PRIVÉES (Les petites briques)
+    // ==========================================
 
-        // 2. On compare avec le maxQuota (qu'on a récupéré via la Façade !)
+    /**
+     * Construit une ligne de réservation après avoir verrouillé le stock et vérifié le quota.
+     */
+    private ReservationLine buildReservationLine(ReservationRequest request, Reservation reservation, ReservationLineRequest lineReq) {
+
+        // 1. On réserve le stock (Verrou) et on récupère le prix + maxQuota
+        TicketStockDto stockInfo = eventFacade.reserveStock(
+                lineReq.ticketCategoriesPerEventId(),
+                request.eventId(),
+                lineReq.quantity()
+        );
+
+        // 2. Vérification du quota
+        checkClientQuota(
+                request.clientId(),
+                lineReq.ticketCategoriesPerEventId(),
+                lineReq.quantity(),
+                stockInfo.maxQuotaPerClient()
+        );
+
+        // 3. Création et retour de la ligne
+        return ReservationLine.builder()
+                .reservation(reservation)
+                .ticketCategoriesPerEventId(lineReq.ticketCategoriesPerEventId())
+                .quantity(lineReq.quantity())
+                .fixedUnitPrice(stockInfo.unitPrice())
+                .subTotal(stockInfo.unitPrice().multiply(BigDecimal.valueOf(lineReq.quantity())))
+                .build();
+    }
+
+    private void checkClientQuota(Long clientId, Long tickePerEventId, Integer requestedQuantity, Integer maxQuota) {
+        Integer alreadyBought = reservationLineRepository.countTotalQuantityBoughtByClientForCategory(clientId, tickePerEventId);
+
         if (alreadyBought + requestedQuantity > maxQuota) {
             throw new IllegalArgumentException(
                     "Limite d'achat dépassée. Maximum autorisé : " + maxQuota +

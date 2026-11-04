@@ -14,13 +14,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
-@Table(
-        name = "events",
-        indexes = {
-                @Index(name = "idx_event_organizer", columnList = "organizer_id"), // Index pour les requêtes par organisateur
-                @Index(name = "idx_event_status", columnList = "status")            // Index pour filtrer les événements publiés
-        }
-)
+@Table(name = "events")
 @Getter
 @Setter
 @NoArgsConstructor

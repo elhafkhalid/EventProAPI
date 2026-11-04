@@ -10,6 +10,8 @@ import com.ex.eventpro_api.event.internal.repository.EventRepository;
 import com.ex.eventpro_api.event.internal.service.EventCategoryService;
 import com.ex.eventpro_api.event.internal.service.EventService;
 import com.ex.eventpro_api.user.api.UserFacade;
+import com.ex.eventpro_api.user.api.dto.OrganizerDto;
+import com.ex.eventpro_api.user.internal.entity.Organizer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,12 +29,11 @@ public class EventServiceImpl implements EventService {
     // On injecte le nouveau service intra-module
     private final EventCategoryService eventCategoryService;
 
-
     @Override
     @Transactional
     public EventResponse createEvent(EventCreateRequest request) {
         // 1. Valider l'organisateur (Inter-module)
-        userFacade.getOrganizerById(request.organizerId());
+        OrganizerDto organizer = userFacade.getOrganizerById(request.organizerId());
 
         // 2. Construire l'événement (Mapper)
         Event event = eventMapper.toEntity(request);

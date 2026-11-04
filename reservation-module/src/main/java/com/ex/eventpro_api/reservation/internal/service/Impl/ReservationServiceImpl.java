@@ -1,5 +1,7 @@
 package com.ex.eventpro_api.reservation.internal.service.Impl;
 
+import com.ex.eventpro_api.event.api.EventFacade;
+import com.ex.eventpro_api.event.api.dto.EventDto;
 import com.ex.eventpro_api.promotion.api.PromotionFacade;
 import com.ex.eventpro_api.promotion.api.dto.PromotionDto;
 import com.ex.eventpro_api.reservation.internal.dto.request.ReservationRequest;
@@ -13,6 +15,7 @@ import com.ex.eventpro_api.reservation.internal.service.ReservationLineService;
 import com.ex.eventpro_api.reservation.internal.service.ReservationService;
 import com.ex.eventpro_api.reservation.internal.service.PricingService;
 import com.ex.eventpro_api.user.api.UserFacade;
+import com.ex.eventpro_api.user.api.dto.ClientDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,47 +36,85 @@ public class ReservationServiceImpl implements ReservationService {
 
     private final UserFacade userFacade;
     private final PromotionFacade promotionFacade;
+    private final EventFacade eventFacade;
 
     @Override
     @Transactional
     public ReservationResponse createReservation(ReservationRequest request) {
 
-        // 1. Valider le client via la Façade
-        userFacade.getClientById(request.clientId());
+        // 1. Les validations (Si l'une échoue, on s'arrête ici)
+        ClientDto clientDto = validateClient(request.clientId());
+        EventDto eventDto = validateEvent(request.eventId());
 
-        // 2. Récupérer la promo via la Façade (si elle existe)
-        PromotionDto promoDto = null;
-        if (request.promotionCode() != null && !request.promotionCode().isEmpty()) {
-            promoDto = promotionFacade.getPromotionByCode(request.promotionCode());
+        // 2. La promotion (Validation et récupération)
+        PromotionDto promoDto = getValidatedPromotion(request.promotionCode(), request.eventId());
 
-            if (promoDto != null && !promoDto.eventId().equals(request.eventId())) {
-                throw new IllegalArgumentException("Le code promo '" + request.promotionCode() + "' n'est pas valide pour cet événement.");
-            }
+        // 3. Création du panier
+        Reservation reservation = buildReservation(request, promoDto);
 
+        // 4. Traitement des billets (Verrou, Quota, Prix)
+        processReservationLines(request, reservation, promoDto);
+
+        // 5. Calcul du total
+        calculateAndApplyTotal(request.promotionCode(), reservation);
+
+        // 6. Incrémentation de la promo (Seulement si tout est OK)
+        incrementPromotionUsageIfPresent(request.promotionCode());
+
+        // 7. Sauvegarde et retour
+        return saveAndMapResponse(reservation);
+    }
+
+    // ==========================================
+    // MÉTHODES PRIVÉES (Le découpage Expert)
+    // ==========================================
+
+    private ClientDto validateClient(Long clientId) {
+        return userFacade.getClientById(clientId); // Lève une exception 404 si introuvable
+    }
+
+    private EventDto validateEvent(Long eventId) {
+        return eventFacade.getEventById(eventId); // Lève une exception 404 si introuvable
+    }
+
+    private PromotionDto getValidatedPromotion(String promotionCode, Long eventId) {
+        if (promotionCode == null || promotionCode.isEmpty()) {
+            return null;
         }
+        promotionFacade.validatePromotion(promotionCode, eventId); // Lève une 400 si invalide
+        return promotionFacade.getPromotionByCode(promotionCode);
+    }
 
-        // 3. Créer le panier
-        Reservation reservation = Reservation.builder()
+    private Reservation buildReservation(ReservationRequest request, PromotionDto promoDto) {
+        return Reservation.builder()
                 .reference("RES-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase())
-                .clientId(request.clientId()) // On met l'ID direct !
+                .clientId(request.clientId())
                 .creationDate(LocalDateTime.now())
                 .expirationDate(LocalDateTime.now().plusMinutes(10))
                 .status(ReservationStatus.PENDING_PAYMENT)
                 .totalAmount(BigDecimal.ZERO)
-                .promotionId(promoDto != null ? promoDto.id() : null) // On met l'ID de la promo !
+                .promotionId(promoDto != null ? promoDto.id() : null)
                 .build();
+    }
 
-        // 4. Traiter les lignes (via le LineService)
+    private void processReservationLines(ReservationRequest request, Reservation reservation, PromotionDto promoDto) {
         List<ReservationLine> lines = lineService.processLines(request, reservation, promoDto);
         reservation.setLines(lines);
+    }
 
-        // 5. Calculer le total
-        BigDecimal finalTotal = pricingService.calculateTotal(lines, request.promotionCode());
-        reservation.setTotalAmount(finalTotal);
+    private void calculateAndApplyTotal(String promotionCode, Reservation reservation) {
+        BigDecimal finalTotal = pricingService.calculateTotal(reservation.getLines(), promotionCode);
+        reservation.updateTotalAmount(finalTotal);
+    }
 
-        // 6. Sauvegarder
+    private void incrementPromotionUsageIfPresent(String promotionCode) {
+        if (promotionCode != null && !promotionCode.isEmpty()) {
+            promotionFacade.incrementUsage(promotionCode);
+        }
+    }
+
+    private ReservationResponse saveAndMapResponse(Reservation reservation) {
         Reservation savedReservation = reservationRepository.save(reservation);
         return reservationMapper.toResponse(savedReservation);
-
     }
 }

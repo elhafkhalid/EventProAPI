@@ -6,7 +6,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
-@Repository
+
 public interface TicketCategoryRepository extends JpaRepository<TicketCategory, Long> {
     Optional<TicketCategory> findByNameIgnoreCase(String name);
 }

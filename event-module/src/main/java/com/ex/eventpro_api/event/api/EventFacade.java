@@ -7,7 +7,7 @@ public interface EventFacade {
     EventDto getEventById(Long eventId);
 
     // On renvoie le DTO au lieu d'un simple BigDecimal
-    TicketStockDto reserveStock(Long ticketCategoriesPerEventId, Integer quantity);
+    TicketStockDto reserveStock(Long ticketCategoriesPerEventId, Long eventId, Integer quantity);
 
     void releaseStock(Long ticketCategoriesPerEventId, Integer quantity);
 }

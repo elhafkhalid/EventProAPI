@@ -2,10 +2,11 @@ package com.ex.eventpro_api.event.internal.dto.request;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
-import lombok.Builder;
 
 import java.time.LocalDateTime;
 import java.util.List;
+
+
 
 public record EventCreateRequest(
 
@@ -32,7 +33,7 @@ public record EventCreateRequest(
         LocalDateTime endDate,
 
         @NotNull(message = "L'ouverture des ventes est obligatoire")
-        @FutureOrPresent(message = "L'ouverture des ventes ne peut pas être dans le passé")
+        //@FutureOrPresent(message = "L'ouverture des ventes ne peut pas être dans le passé")
         LocalDateTime salesOpeningDate,
 
         @NotNull(message = "La fermeture des ventes est obligatoire")

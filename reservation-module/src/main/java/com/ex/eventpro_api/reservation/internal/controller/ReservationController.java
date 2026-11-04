@@ -3,6 +3,7 @@ package com.ex.eventpro_api.reservation.internal.controller;
 import com.ex.eventpro_api.reservation.internal.dto.request.ReservationRequest;
 import com.ex.eventpro_api.reservation.internal.dto.response.ReservationResponse;
 import com.ex.eventpro_api.reservation.internal.service.ReservationService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -16,7 +17,7 @@ public class ReservationController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED) // Renvoie 201 Created
-    public ReservationResponse createReservation(@RequestBody ReservationRequest request) {
+    public ReservationResponse createReservation(@Valid @RequestBody ReservationRequest request) {
         return reservationService.createReservation(request);
     }
 }

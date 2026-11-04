@@ -6,5 +6,6 @@ import java.math.BigDecimal;
 import java.util.List;
 
 public interface PricingService {
-    BigDecimal calculateTotal(List<ReservationLine> lines, String promoCode);
+    // On passe le String promotionCode au lieu du DTO
+    BigDecimal calculateTotal(List<ReservationLine> lines, String promotionCode);
 }

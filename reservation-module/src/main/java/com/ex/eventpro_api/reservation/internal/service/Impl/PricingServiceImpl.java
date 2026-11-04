@@ -1,8 +1,6 @@
 package com.ex.eventpro_api.reservation.internal.service.Impl;
 
 import com.ex.eventpro_api.promotion.api.PromotionFacade;
-import com.ex.eventpro_api.promotion.api.dto.PromotionDto;
-import com.ex.eventpro_api.promotion.internal.enums.DiscountType;
 import com.ex.eventpro_api.reservation.internal.entity.ReservationLine;
 import com.ex.eventpro_api.reservation.internal.service.PricingService;
 import lombok.RequiredArgsConstructor;
@@ -15,30 +13,28 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PricingServiceImpl implements PricingService {
 
-    private final PromotionFacade promotionFacade; // Façade !
+    // On injecte la Façade !
+    private final PromotionFacade promotionFacade;
 
     @Override
     public BigDecimal calculateTotal(List<ReservationLine> lines, String promotionCode) {
-        BigDecimal total = lines.stream()
+        // 1. Calcul du sous-total (interne au module Reservation)
+        BigDecimal total = calculateSubTotal(lines);
+
+        // 2. Application de la réduction (déléguée au module Promotion)
+        if (promotionCode != null && !promotionCode.trim().isEmpty()) {
+            // La Façade fait le calcul et renvoie le montant de la réduction
+            BigDecimal discount = promotionFacade.calculateDiscount(promotionCode, total);
+            total = total.subtract(discount);
+        }
+
+        // 3. Sécurité : le total ne peut pas être négatif
+        return total.max(BigDecimal.ZERO);
+    }
+
+    private BigDecimal calculateSubTotal(List<ReservationLine> lines) {
+        return lines.stream()
                 .map(ReservationLine::getSubTotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        if (promotionCode != null && !promotionCode.trim().isEmpty()) {
-            // On récupère le DTO via la Façade
-            PromotionDto promo = promotionFacade.getPromotionByCode(promotionCode);
-
-            // On vérifie la validité (Logique déplacée ici car le DTO ne peut pas avoir de méthode métier complexe)
-            // Note: Pour faire simple, on va juste vérifier les dates et le compteur.
-            if (promo != null) {
-                BigDecimal discount;
-                if (promo.discountType() == DiscountType.PERCENTAGE) {
-                    discount = total.multiply(promo.discountValue()).divide(BigDecimal.valueOf(100));
-                } else {
-                    discount = promo.discountValue().min(total);
-                }
-                total = total.subtract(discount);
-            }
-        }
-        return total.max(BigDecimal.ZERO);
     }
 }

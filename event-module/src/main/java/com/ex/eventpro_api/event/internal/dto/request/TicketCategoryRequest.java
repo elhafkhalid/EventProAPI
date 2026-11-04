@@ -9,7 +9,7 @@ import lombok.Builder;
 
 import java.math.BigDecimal;
 
-@Builder
+
 public record TicketCategoryRequest(
 
         @NotBlank(message = "Le nom de la catégorie est obligatoire")

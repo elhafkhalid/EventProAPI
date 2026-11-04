@@ -25,38 +25,53 @@ public class PaymentServiceImpl implements PaymentService {
     private final PaymentRepository paymentRepository;
     private final PaymentMapper paymentMapper;
     private final PaymentValidationService validationService;
-
-    // On utilise la Façade !
     private final ReservationFacade reservationFacade;
 
     @Transactional
     @Override
     public PaymentResponse processPayment(PaymentRequest request) {
 
-        // 1. Vérifier l'idempotence
+        // 1. Vérifier l'idempotence (Si déjà payé, on renvoie le reçu)
         Optional<PaymentResponse> existingResponse = validationService.checkIdempotency(request);
         if (existingResponse.isPresent()) {
             return existingResponse.get();
         }
 
-        // 2. Valider la réservation (montant + statut)
-        ReservationDto reservation = validationService.getAndValidateReservation(request);
+        // 2. Valider la réservation (montant, statut, expiration)
+        ReservationDto reservationDto = validationService.getAndValidateReservation(request);
 
-        // 3. Créer le paiement
+        // 3. Créer et sauvegarder le paiement
+        Payment savedPayment = createAndSavePayment(request, reservationDto);
+
+        // 4. Confirmer la réservation via la Façade
+        confirmReservation(reservationDto);
+
+        // 5. Renvoyer le reçu
+        return paymentMapper.toResponse(savedPayment);
+    }
+
+    // ==========================================
+    // MÉTHODES PRIVÉES
+    // ==========================================
+
+    private Payment createAndSavePayment(PaymentRequest request, ReservationDto reservationDto) {
         Payment payment = Payment.builder()
-                .reservationId(reservation.id()) // On met l'ID direct !
+                .reservationId(reservationDto.id())
                 .idempotencyKey(request.idempotencyKey())
                 .reference("PAY-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase())
                 .amount(request.amount())
                 .paymentDate(LocalDateTime.now())
-                .status(PaymentStatus.SUCCESS)
+                .status(PaymentStatus.PENDING) // On crée toujours en PENDING
                 .build();
 
-        // 4. Confirmer la réservation via la Façade
-        reservationFacade.confirmReservation(reservation.id());
+        // On utilise la méthode métier de l'entité pour passer à SUCCESS
+        payment.markAsSuccess();
 
-        // 5. Sauvegarder le paiement et renvoyer le reçu
-        Payment savedPayment = paymentRepository.save(payment);
-        return paymentMapper.toResponse(savedPayment);
+        return paymentRepository.save(payment);
+    }
+
+    private void confirmReservation(ReservationDto reservationDto) {
+        // On demande au module Reservation de passer la réservation en CONFIRMED
+        reservationFacade.confirmReservation(reservationDto.id());
     }
 }

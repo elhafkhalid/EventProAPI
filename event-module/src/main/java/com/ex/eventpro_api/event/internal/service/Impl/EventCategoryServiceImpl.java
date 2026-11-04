@@ -33,7 +33,7 @@ public class EventCategoryServiceImpl implements EventCategoryService {
         // 3. Transformation (Approche fonctionnelle avec les Streams)
         return request.categories().stream()
                 .map(catReq -> buildCategoryConfig(event, catReq))
-                .toList(); // .toList() est disponible depuis Java 16
+                .toList();
     }
 
     // ==========================================
@@ -44,6 +44,7 @@ public class EventCategoryServiceImpl implements EventCategoryService {
      * Calcule la somme totale des places demandées et vérifie qu'elle ne dépasse pas la capacité.
      */
     private void validateTotalCapacity(EventCreateRequest request) {
+
         int totalQuantitySum = request.categories().stream()
                 .mapToInt(TicketCategoryRequest::totalQuantity)
                 .sum();
@@ -55,7 +56,7 @@ public class EventCategoryServiceImpl implements EventCategoryService {
      * Construit une ligne de configuration (Entité) à partir d'une requête.
      */
     private TicketCategoriesPerEvent buildCategoryConfig(Event event, TicketCategoryRequest catReq) {
-        TicketCategory category = getOrCreateTicketCategory(catReq.name());
+        TicketCategory category = getOrCreateTicketCategory(catReq.name().trim());
 
         return TicketCategoriesPerEvent.builder()
                 .event(event)
@@ -71,9 +72,9 @@ public class EventCategoryServiceImpl implements EventCategoryService {
      */
     private TicketCategory getOrCreateTicketCategory(String categoryName) {
         return ticketCategoryRepository.findByNameIgnoreCase(categoryName)
-                .orElseGet(() -> ticketCategoryRepository.save(
-                        TicketCategory.builder().name(categoryName).build()
-                ));
+                .orElseGet(() -> ticketCategoryRepository
+                        .save(TicketCategory.builder().name(categoryName).build())
+                );
     }
 
     /**
@@ -84,4 +85,5 @@ public class EventCategoryServiceImpl implements EventCategoryService {
             throw new IllegalArgumentException("La somme des places (" + totalQuantitySum + ") dépasse la capacité (" + capacity + ").");
         }
     }
+
 }

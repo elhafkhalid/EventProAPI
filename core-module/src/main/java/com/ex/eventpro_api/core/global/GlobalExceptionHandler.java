@@ -4,6 +4,7 @@ import com.ex.eventpro_api.core.exception.IdempotencyConflictException;
 import com.ex.eventpro_api.core.dto.ErrorResponse;
 import com.ex.eventpro_api.core.exception.InsufficientStockException;
 import com.ex.eventpro_api.core.exception.ResourceNotFoundException;
+import com.ex.eventpro_api.core.exception.TicketAlreadyUsedException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
@@ -14,7 +15,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.LocalDateTime;
 import java.util.stream.Collectors;
-
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -32,20 +32,21 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
 
-
     // Gère toutes les autres erreurs 500 (Erreur serveur imprévue)
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGlobalException(Exception ex, HttpServletRequest request) {
+        // TRÈS UTILE POUR LE DEBUG : Affiche l'erreur complète dans la console IntelliJ
+        ex.printStackTrace();
+
         ErrorResponse error = ErrorResponse.builder()
                 .timestamp(LocalDateTime.now())
                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .error(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase())
-                .message("Une erreur interne est survenue.") // On ne dévoile pas le code source
+                .message("Une erreur interne est survenue.")
                 .path(request.getRequestURI())
                 .build();
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
 
     // Gère les erreurs 400 (Mauvaise requête du client, ex: code promo déjà existant, capacité dépassée)
     @ExceptionHandler(IllegalArgumentException.class)
@@ -54,33 +55,31 @@ public class GlobalExceptionHandler {
                 .timestamp(LocalDateTime.now())
                 .status(HttpStatus.BAD_REQUEST.value())
                 .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
-                .message(ex.getMessage()) // Ici, on affiche le vrai message !
+                .message(ex.getMessage())
                 .path(request.getRequestURI())
                 .build();
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
-
 
     // Gère les erreurs 409 (Conflit de stock)
     @ExceptionHandler(InsufficientStockException.class)
     public ResponseEntity<ErrorResponse> handleInsufficientStock(InsufficientStockException ex, HttpServletRequest request) {
         ErrorResponse error = ErrorResponse.builder()
                 .timestamp(LocalDateTime.now())
-                .status(HttpStatus.CONFLICT.value()) // 409
+                .status(HttpStatus.CONFLICT.value())
                 .error(HttpStatus.CONFLICT.getReasonPhrase())
                 .message(ex.getMessage())
                 .path(request.getRequestURI())
                 .build();
         return new ResponseEntity<>(error, HttpStatus.CONFLICT);
     }
-
 
     // Gère les erreurs 409 (Conflit d'idempotence)
     @ExceptionHandler(IdempotencyConflictException.class)
     public ResponseEntity<ErrorResponse> handleIdempotencyConflict(IdempotencyConflictException ex, HttpServletRequest request) {
         ErrorResponse error = ErrorResponse.builder()
                 .timestamp(LocalDateTime.now())
-                .status(HttpStatus.CONFLICT.value()) // 409 Conflict
+                .status(HttpStatus.CONFLICT.value())
                 .error(HttpStatus.CONFLICT.getReasonPhrase())
                 .message(ex.getMessage())
                 .path(request.getRequestURI())
@@ -88,11 +87,9 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.CONFLICT);
     }
 
-
-    // Gère les erreurs 400 de validation de DTO (@Valid)
+    // Gère les erreurs 400 de validation de DTO (@Valid) controller
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationExceptions(MethodArgumentNotValidException ex, HttpServletRequest request) {
-        // On récupère tous les messages d'erreur des champs
         String errorMessage = ex.getBindingResult().getFieldErrors().stream()
                 .map(error -> error.getField() + " : " + error.getDefaultMessage())
                 .collect(Collectors.joining(", "));
@@ -110,13 +107,33 @@ public class GlobalExceptionHandler {
     // Gère les erreurs 400 de validation d'Entité (Hibernate)
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<ErrorResponse> handleConstraintViolation(ConstraintViolationException ex, HttpServletRequest request) {
+
+        // ✅ LA CORRECTION EST ICI : On extrait uniquement le message propre
+        String cleanMessage = ex.getConstraintViolations().stream()
+                .map(violation -> violation.getMessage())
+                .collect(Collectors.joining(", "));
+
         ErrorResponse error = ErrorResponse.builder()
                 .timestamp(LocalDateTime.now())
                 .status(HttpStatus.BAD_REQUEST.value())
                 .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
-                .message(ex.getMessage())
+                .message(cleanMessage) // On utilise le message propre
                 .path(request.getRequestURI())
                 .build();
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
+
+    // Gère les erreurs 409 (Billet déjà scanné)
+    @ExceptionHandler(TicketAlreadyUsedException.class)
+    public ResponseEntity<ErrorResponse> handleTicketAlreadyUsed(TicketAlreadyUsedException ex, HttpServletRequest request) {
+        ErrorResponse error = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.CONFLICT.value()) // 409
+                .error(HttpStatus.CONFLICT.getReasonPhrase())
+                .message(ex.getMessage())
+                .path(request.getRequestURI())
+                .build();
+        return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+    }
+
 }

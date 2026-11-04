@@ -6,6 +6,5 @@ import lombok.Builder;
 public record OrganizerDto(
         Long id,
         String name,
-        String email,
-        String organisationName
+        String email
 ) {}
