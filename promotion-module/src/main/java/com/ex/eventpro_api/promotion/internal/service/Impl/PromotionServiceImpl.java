@@ -1,5 +1,6 @@
 package com.ex.eventpro_api.promotion.internal.service.Impl;
 
+import com.ex.eventpro_api.core.exception.ResourceNotFoundException;
 import com.ex.eventpro_api.event.api.dto.EventDto;
 import com.ex.eventpro_api.promotion.internal.dto.request.PromotionCreateRequest;
 import com.ex.eventpro_api.promotion.internal.dto.response.PromotionResponse;
@@ -43,6 +44,13 @@ public class PromotionServiceImpl implements PromotionService {
         Promotion savedPromotion = promotionRepository.save(promotion);
 
         return promotionMapper.toResponse(savedPromotion);
+    }
+
+    @Override
+    public PromotionResponse getPromotionByEventId(Long eventId) {
+        Promotion promotion = promotionRepository.findByEventId(eventId)
+                .orElseThrow(() -> new ResourceNotFoundException("Aucune promotion trouvée pour l'événement " + eventId));
+        return promotionMapper.toResponse(promotion);
     }
 
     // ==========================================

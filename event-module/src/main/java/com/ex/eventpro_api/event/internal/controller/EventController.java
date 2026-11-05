@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/events")
@@ -25,6 +27,18 @@ public class EventController {
     @ResponseStatus(HttpStatus.NO_CONTENT) // 204 No Content (Succès sans corps de réponse)
     public void publishEvent(@PathVariable Long id) {
         eventService.publishEvent(id);
+    }
+
+    @GetMapping
+    @ResponseStatus(HttpStatus.OK)
+    public List<EventResponse> getAllEvents() {
+        return eventService.getAllPublishedEvents();
+    }
+
+    @GetMapping("/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public EventResponse getEventById(@PathVariable Long id) {
+        return eventService.getEventById(id);
     }
 
 }

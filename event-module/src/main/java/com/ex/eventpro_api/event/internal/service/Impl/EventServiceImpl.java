@@ -5,6 +5,7 @@ import com.ex.eventpro_api.event.internal.dto.request.EventCreateRequest;
 import com.ex.eventpro_api.event.internal.dto.response.EventResponse;
 import com.ex.eventpro_api.event.internal.entity.Event;
 import com.ex.eventpro_api.event.internal.entity.TicketCategoriesPerEvent;
+import com.ex.eventpro_api.event.internal.enums.EventStatus;
 import com.ex.eventpro_api.event.internal.mapper.EventMapper;
 import com.ex.eventpro_api.event.internal.repository.EventRepository;
 import com.ex.eventpro_api.event.internal.service.EventCategoryService;
@@ -62,5 +63,21 @@ public class EventServiceImpl implements EventService {
 
         // Sauvegarde optionnelle (le @Transactional fait le dirty checking, mais on le laisse pour la clarté)
         eventRepository.save(event);
+    }
+
+
+    @Override
+    public List<EventResponse> getAllPublishedEvents() {
+        return eventRepository.findByStatus(EventStatus.PUBLISHED)
+                .stream()
+                .map(eventMapper::toResponse) // On transforme chaque Event en EventResponse
+                .toList();
+    }
+
+    @Override
+    public EventResponse getEventById(Long eventId) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new ResourceNotFoundException("Événement introuvable avec l'ID : " + eventId));
+        return eventMapper.toResponse(event);
     }
 }

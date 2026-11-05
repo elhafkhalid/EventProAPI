@@ -1,11 +1,15 @@
 package com.ex.eventpro_api.reservation.internal.service.Impl;
 
 import com.ex.eventpro_api.core.exception.ResourceNotFoundException;
+import com.ex.eventpro_api.reservation.api.ReservationFacade;
+import com.ex.eventpro_api.reservation.internal.dto.response.TicketResponse;
 import com.ex.eventpro_api.reservation.internal.dto.response.TicketScanResponse;
 import com.ex.eventpro_api.reservation.internal.entity.Reservation;
 import com.ex.eventpro_api.reservation.internal.entity.ReservationLine;
 import com.ex.eventpro_api.reservation.internal.entity.Ticket;
 import com.ex.eventpro_api.reservation.internal.enums.TicketStatus;
+import com.ex.eventpro_api.reservation.internal.mapper.TicketMapper;
+import com.ex.eventpro_api.reservation.internal.repository.ReservationRepository;
 import com.ex.eventpro_api.reservation.internal.repository.TicketRepository;
 import com.ex.eventpro_api.reservation.internal.service.TicketService;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +25,9 @@ import java.util.stream.IntStream;
 public class TicketServiceImpl implements TicketService {
 
     private final TicketRepository ticketRepository;
+    private final TicketMapper ticketMapper;
+    private final ReservationRepository reservationRepository;
+
 
     @Override
     @Transactional
@@ -37,6 +44,19 @@ public class TicketServiceImpl implements TicketService {
 
         // 2. On sauvegarde tous les billets d'un coup
         ticketRepository.saveAll(allTickets);
+    }
+
+    @Override
+    public List<TicketResponse> getTicketsByReservation(Long reservationId) {
+        // On vérifie que la réservation existe avant de chercher les billets
+        if (!reservationRepository.existsById(reservationId)) {
+            throw new ResourceNotFoundException("Réservation introuvable avec l'ID : " + reservationId);
+        }
+
+        return ticketRepository.findByReservationId(reservationId)
+                .stream()
+                .map(ticketMapper::toResponse)
+                .toList();
     }
 
     // Dans TicketServiceImpl.java

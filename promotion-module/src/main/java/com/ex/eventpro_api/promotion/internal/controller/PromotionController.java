@@ -21,4 +21,10 @@ public class PromotionController {
     public PromotionResponse createPromotion(@Valid  @RequestBody PromotionCreateRequest request) {
         return promotionService.createPromotion(request);
     }
+
+    @GetMapping("/event/{eventId}")
+    @ResponseStatus(HttpStatus.OK)
+    public PromotionResponse getPromotionByEvent(@PathVariable Long eventId) {
+        return promotionService.getPromotionByEventId(eventId);
+    }
 }

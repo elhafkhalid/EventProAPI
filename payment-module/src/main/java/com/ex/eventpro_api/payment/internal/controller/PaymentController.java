@@ -20,4 +20,10 @@ public class PaymentController {
     public PaymentResponse processPayment(@Valid @RequestBody PaymentRequest request) {
         return paymentService.processPayment(request);
     }
+
+    @GetMapping("/reservation/{reservationId}")
+    @ResponseStatus(HttpStatus.OK)
+    public PaymentResponse getPaymentByReservation(@PathVariable Long reservationId) {
+        return paymentService.getPaymentByReservationId(reservationId);
+    }
 }

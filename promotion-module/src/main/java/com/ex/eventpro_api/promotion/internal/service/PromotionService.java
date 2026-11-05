@@ -5,4 +5,5 @@ import com.ex.eventpro_api.promotion.internal.dto.response.PromotionResponse;
 
 public interface PromotionService {
     PromotionResponse createPromotion(PromotionCreateRequest request);
+    PromotionResponse getPromotionByEventId(Long eventId);
 }

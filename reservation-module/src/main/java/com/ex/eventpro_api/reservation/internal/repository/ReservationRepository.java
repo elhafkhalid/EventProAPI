@@ -12,6 +12,6 @@ import java.util.Optional;
 @Repository
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
     Optional<Reservation> findByReference(String reference);
-
     List<Reservation> findByStatusAndExpirationDateBefore(ReservationStatus status, LocalDateTime date);
+    List<Reservation> findByClientId(Long clientId);
 }

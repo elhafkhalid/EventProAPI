@@ -65,8 +65,20 @@ public class ReservationServiceImpl implements ReservationService {
         return saveAndMapResponse(reservation);
     }
 
+    @Override
+    public List<ReservationResponse> getClientReservations(Long clientId) {
+
+        userFacade.getClientById(clientId);
+
+        List<Reservation> reservations = reservationRepository.findByClientId(clientId);
+
+        return  reservations.stream()
+                .map(reservationMapper::toResponse)
+                .toList();
+    }
+
     // ==========================================
-    // MÉTHODES PRIVÉES (Le découpage Expert)
+    // MÉTHODES PRIVÉES
     // ==========================================
 
     private ClientDto validateClient(Long clientId) {

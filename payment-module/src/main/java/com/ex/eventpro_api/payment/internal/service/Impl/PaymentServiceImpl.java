@@ -1,5 +1,6 @@
 package com.ex.eventpro_api.payment.internal.service.Impl;
 
+import com.ex.eventpro_api.core.exception.ResourceNotFoundException;
 import com.ex.eventpro_api.payment.internal.dto.request.PaymentRequest;
 import com.ex.eventpro_api.payment.internal.dto.response.PaymentResponse;
 import com.ex.eventpro_api.payment.internal.entity.Payment;
@@ -48,6 +49,13 @@ public class PaymentServiceImpl implements PaymentService {
 
         // 5. Renvoyer le reçu
         return paymentMapper.toResponse(savedPayment);
+    }
+
+    @Override
+    public PaymentResponse getPaymentByReservationId(Long reservationId) {
+        Payment payment = paymentRepository.findByReservationId(reservationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Aucun paiement trouvé pour la réservation " + reservationId));
+        return paymentMapper.toResponse(payment);
     }
 
     // ==========================================
