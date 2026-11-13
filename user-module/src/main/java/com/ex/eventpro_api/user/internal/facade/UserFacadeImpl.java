@@ -11,6 +11,8 @@ import com.ex.eventpro_api.user.internal.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 @RequiredArgsConstructor
 public class UserFacadeImpl implements UserFacade {
@@ -42,11 +44,26 @@ public class UserFacadeImpl implements UserFacade {
         if (!(user instanceof Organizer))
             throw new IllegalArgumentException("L'ID fourni ne correspond pas à un Organisateur.");
 
+        Organizer organizer = (Organizer) user;
         return OrganizerDto.builder()
-                .id(user.getId())
-                .name(user.getName())
-                .email(user.getEmail())
+                .id(organizer.getId())
+                .name(organizer.getName())
+                .email(organizer.getEmail())
                 .build();
-
     }
+
+    @Override
+    public List<ClientDto> getAllClients() {
+        return userRepository.findAll().stream()
+                .filter(user -> user instanceof Client)
+                .map(user -> (Client) user)
+                .map(client -> ClientDto.builder()
+                        .id(client.getId())
+                        .email(client.getEmail())
+                        .build()
+                ).toList();
+    }
+
 }
+
+

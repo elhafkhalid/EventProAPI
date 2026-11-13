@@ -45,7 +45,7 @@ public record EventCreateRequest(
         Integer capacity,
 
         // --- LA MAGIE POUR LES LISTES ---
-        @NotEmpty(message = "Un événement doit avoir au moins une catégorie de billets")
+        //@NotEmpty(message = "Un événement doit avoir au moins une catégorie de billets")
         @Valid // <-- TRÈS IMPORTANT : Force la validation à l'intérieur de chaque TicketCategoryRequest
         List<TicketCategoryRequest> categories
 ) {

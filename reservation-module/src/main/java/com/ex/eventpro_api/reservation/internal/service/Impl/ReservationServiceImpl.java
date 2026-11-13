@@ -1,11 +1,16 @@
 package com.ex.eventpro_api.reservation.internal.service.Impl;
 
+import com.ex.eventpro_api.core.exception.ResourceNotFoundException;
 import com.ex.eventpro_api.event.api.EventFacade;
 import com.ex.eventpro_api.event.api.dto.EventDto;
 import com.ex.eventpro_api.promotion.api.PromotionFacade;
 import com.ex.eventpro_api.promotion.api.dto.PromotionDto;
+import com.ex.eventpro_api.reservation.api.TopAmountClient;
+import com.ex.eventpro_api.reservation.api.TopTicketsClient;
 import com.ex.eventpro_api.reservation.internal.dto.request.ReservationRequest;
 import com.ex.eventpro_api.reservation.internal.dto.response.ReservationResponse;
+import com.ex.eventpro_api.reservation.internal.dto.response.TopAmountResponse;
+import com.ex.eventpro_api.reservation.internal.dto.response.TopTicketsClientResponse;
 import com.ex.eventpro_api.reservation.internal.entity.Reservation;
 import com.ex.eventpro_api.reservation.internal.entity.ReservationLine;
 import com.ex.eventpro_api.reservation.internal.enums.ReservationStatus;
@@ -72,7 +77,50 @@ public class ReservationServiceImpl implements ReservationService {
 
         List<Reservation> reservations = reservationRepository.findByClientId(clientId);
 
-        return  reservations.stream()
+        return reservations.stream()
+                .map(reservationMapper::toResponse)
+                .toList();
+    }
+
+    public TopAmountResponse findTopAmountClient() {
+
+        TopAmountClient result = reservationRepository.findTopAmountClient();
+        if (result == null) throw new ResourceNotFoundException("Aucune réservation trouvée dans la base de données.");
+
+
+        ClientDto client = userFacade.getClientById(result.getClientId());
+        return TopAmountResponse.builder()
+                .id(client.id())
+                .totalAmount(result.getTotalAmount())
+                .build();
+    }
+
+    public TopTicketsClientResponse findTopTicketClient() {
+
+        TopTicketsClient topTickets = reservationRepository.findTopTickets();
+        ClientDto client = userFacade.getClientById(topTickets.getClientId());
+
+        if (topTickets == null) {
+            throw new ResourceNotFoundException("Aucun billet vendu pour le moment.");
+        }
+
+        return TopTicketsClientResponse.builder()
+                .id(client.id())
+                .totalTicket(topTickets.getTotalTickets())
+                .build();
+    }
+
+    /// mise en situation 1
+    public List<ReservationResponse> findReservationByEmailAndCateg(String email, String nomCateg, int qteMin, Long eventId) {
+
+        eventFacade.getEventById(eventId);
+
+        List<Reservation> reservations = reservationRepository
+                .findReservationByEmailAndCateg(email, nomCateg, qteMin, eventId);
+
+        if (reservations.isEmpty()) throw new ResourceNotFoundException("aucune rservation confirme trouve");
+
+        return reservations.stream()
                 .map(reservationMapper::toResponse)
                 .toList();
     }
